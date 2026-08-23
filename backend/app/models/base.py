@@ -3,14 +3,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, Text, UniqueConstraint
+from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
-    Relationship,
     mapped_column,
-    relationship,
 )
 
 
@@ -20,7 +18,6 @@ class Base(DeclarativeBase):
     All entities that will be externally addressable use UUID primary keys
     to support future federation.
     """
-
 
 
 def new_uuid() -> uuid.UUID:
@@ -51,84 +48,6 @@ class UUIDBase(Base):
         DateTime,
         unique=False,
         nullable=False,
-        default=datetime.now, 
+        default=datetime.now,
         onupdate=datetime.now,
     )
-
-
-class CommentableModel(UUIDBase):
-    """Base class for all SQLAlchemy models that can be commented on."""
-
-    __abstract__ = True
-
-    comments: Relationship["CommentModel"] = relationship(  # noqa: UP037
-        "CommentModel",
-        back_populates="commentable",
-        cascade="all, delete-orphan",
-    )
-    
-
-class ConceptModel(CommentableModel):
-    """SQLAlchemy model for concept."""
-
-    name: Mapped[str] = mapped_column(
-        String(255),
-        unique=False,
-        nullable=False,
-    )
-    description: Mapped[str] = mapped_column(
-        Text,
-        unique=False,
-        nullable=True,
-    )
-
-
-class ConceptLinkModel(CommentableModel):
-    """SQLAlchemy model for concept link."""
-
-    __table_args__ = (
-        UniqueConstraint(
-            "source_concept_id",
-            "target_concept_id",
-            name="uq_concept_link_source_target",
-        ),
-    )
-
-    source_concept_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        unique=False,
-        nullable=False,
-    )
-    target_concept_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        unique=False,
-        nullable=False,
-    )
-
-
-class CommentModel(UUIDBase):
-    """SQLAlchemy model for comment."""
-
-    content: Mapped[str] = mapped_column(
-        Text,
-        unique=False,
-        nullable=False,
-    )
-    commentable_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        unique=False,
-        nullable=False,
-    )
-    commentable_type: Mapped[str] = mapped_column(
-        String(255),
-        unique=False,
-        nullable=False,
-    )
-
-    commentable: Mapped[CommentableModel] = relationship(
-        "CommentableModel",
-        back_populates="comments",
-    )
-
-
-
