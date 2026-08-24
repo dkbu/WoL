@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.db import knowledge as db_knowledge
-from app.schemas.knowledge import Concept
+from app.schemas.knowledge import Concept, ConceptCreationRequest
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ def get_concept(
 
 @router.post("/knowledge/concepts")
 def create_concept(
-    concept: Concept,
+    concept: ConceptCreationRequest,
     db: Session = Depends(get_db),
 ) -> Concept:
     return db_knowledge.create_concept(db, concept)

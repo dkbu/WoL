@@ -3,6 +3,11 @@ from uuid import UUID
 from pydantic import BaseModel, field_validator
 
 
+class ConceptCreationRequest(BaseModel):
+    name: str
+    description: str | None = None
+
+
 class Concept(BaseModel):
     id: str | UUID 
     name: str
