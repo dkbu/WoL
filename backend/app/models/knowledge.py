@@ -1,7 +1,8 @@
 
 import uuid
+from typing import ClassVar
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,19 +12,32 @@ from app.models.base import UUIDBase
 class Commentable(UUIDBase):
     """Base class for models that can have comments."""
 
-    __abstract__ = True
+    __tablename__ = "commentables"
+
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
 
     comments: Mapped[list["CommentModel"]] = relationship(
-        back_populates="concept",
-        foreign_keys="CommentModel.concept_id",
+        back_populates="commentable",
+        foreign_keys="CommentModel.commentable_id",
         cascade="all, delete-orphan",
     )
+
+    __mapper_args__: ClassVar[dict[str, object]] = {  # type: ignore[reportIncompatibleVariableOverride]
+        "polymorphic_on": type,
+        "polymorphic_identity": "commentable",
+    }
 
 
 class ConceptModel(Commentable):
     """SQLAlchemy model for concept."""
 
     __tablename__ = "concepts"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("commentables.id"), primary_key=True
+    )
+
+    __mapper_args__: ClassVar[dict[str, object]] = {"polymorphic_identity": "concept"}
 
     name: Mapped[str] = mapped_column(
         String(255),
@@ -42,7 +56,11 @@ class ConceptLinkModel(Commentable):
 
     __tablename__ = "concept_links"
 
-    # comments relationship inherited from Commentable
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("commentables.id"), primary_key=True
+    )
+
+    __mapper_args__: ClassVar[dict[str, object]] = {"polymorphic_identity": "concept_link"}
 
     __table_args__ = (
         UniqueConstraint(
@@ -69,25 +87,18 @@ class CommentModel(UUIDBase):
 
     __tablename__ = "comments"
 
-    __table_args__ = (
-        CheckConstraint(
-            "(concept_id IS NOT NULL) <> (link_id IS NOT NULL)",
-            name="ck_comment_exactly_one_target",
-        ),
-    )
-
     content: Mapped[str] = mapped_column(
         Text,
         unique=False,
         nullable=False,
     )
-    commentable_id: Mapped[uuid.UUID | None] = mapped_column(
+    commentable_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("concepts.id"),
+        ForeignKey("commentables.id"),
         unique=False,
-        nullable=True,
+        nullable=False,
     )
-    commentable: Mapped[ConceptModel | None] = relationship(
+    commentable: Mapped[Commentable] = relationship(
         back_populates="comments",
         foreign_keys=[commentable_id],
     )
