@@ -8,16 +8,22 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import UUIDBase
 
 
-class ConceptModel(UUIDBase):
-    """SQLAlchemy model for concept."""
+class Commentable(UUIDBase):
+    """Base class for models that can have comments."""
 
-    __tablename__ = "concepts"
+    __abstract__ = True
 
     comments: Mapped[list["CommentModel"]] = relationship(
         back_populates="concept",
         foreign_keys="CommentModel.concept_id",
         cascade="all, delete-orphan",
     )
+
+
+class ConceptModel(Commentable):
+    """SQLAlchemy model for concept."""
+
+    __tablename__ = "concepts"
 
     name: Mapped[str] = mapped_column(
         String(255),
@@ -31,16 +37,12 @@ class ConceptModel(UUIDBase):
     )
 
 
-class ConceptLinkModel(UUIDBase):
+class ConceptLinkModel(Commentable):
     """SQLAlchemy model for concept link."""
 
     __tablename__ = "concept_links"
 
-    comments: Mapped[list["CommentModel"]] = relationship(
-        back_populates="link",
-        foreign_keys="CommentModel.link_id",
-        cascade="all, delete-orphan",
-    )
+    # comments relationship inherited from Commentable
 
     __table_args__ = (
         UniqueConstraint(
@@ -79,24 +81,14 @@ class CommentModel(UUIDBase):
         unique=False,
         nullable=False,
     )
-    concept_id: Mapped[uuid.UUID | None] = mapped_column(
+    commentable_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("conceptmodel.id"),
+        ForeignKey("concepts.id"),
         unique=False,
         nullable=True,
     )
-    link_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("conceptlinkmodel.id"),
-        unique=False,
-        nullable=True,
-    )
-    concept: Mapped[ConceptModel | None] = relationship(
+    commentable: Mapped[ConceptModel | None] = relationship(
         back_populates="comments",
-        foreign_keys=[concept_id],
-    )
-    link: Mapped[ConceptLinkModel | None] = relationship(
-        back_populates="comments",
-        foreign_keys=[link_id],
+        foreign_keys=[commentable_id],
     )
 
