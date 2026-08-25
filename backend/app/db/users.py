@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.models.knowledge import ConceptModel
-from app.models.users import UserModel
+from app.models.users import FollowModel, UserModel
 from app.schemas.knowledge import Concept
 from app.schemas.users import User, UserCreationRequest, UserProfile
 
@@ -55,6 +55,25 @@ def get_user_profile(db: Session, user_id: uuid.UUID) -> UserProfile | None:
         commented_concepts=[_to_concept(c) for c in commented_concepts.values()],
     )
 
+def _to_user(user_model: UserModel) -> User:
+    return User(
+        id=user_model.id,
+        username=user_model.username,
+        is_curator=user_model.is_curator,
+    )
+
+
+def get_all_users(db: Session) -> list[User]:
+    """Retrieve every user. Intended for admin use only."""
+    return [_to_user(u) for u in db.query(UserModel).all()]
+
+
+def search_users_by_username(db: Session, username: str) -> list[User]:
+    """Case-insensitive partial match on username."""
+    users = db.query(UserModel).filter(UserModel.username.ilike(f"%{username}%")).all()
+    return [_to_user(u) for u in users]
+
+
 def create_user(db: Session, user: UserCreationRequest) -> User:
     """Create a new user in the database."""
 
@@ -70,3 +89,44 @@ def create_user(db: Session, user: UserCreationRequest) -> User:
         username=user_model.username,
         is_curator=user_model.is_curator,
     )
+
+
+def follow_user(db: Session, follower_id: uuid.UUID, followed_id: uuid.UUID) -> User | None:
+    """Make follower_id follow followed_id. Returns the followed user, or None if either doesn't exist."""
+    follower = db.get(UserModel, follower_id)
+    followed = db.get(UserModel, followed_id)
+    if not follower or not followed:
+        return None
+
+    existing = (
+        db.query(FollowModel)
+        .filter(FollowModel.follower_id == follower_id, FollowModel.followed_id == followed_id)
+        .first()
+    )
+    if not existing:
+        db.add(FollowModel(follower_id=follower_id, followed_id=followed_id))
+        db.commit()
+
+    return _to_user(followed)
+
+
+def unfollow_user(db: Session, follower_id: uuid.UUID, followed_id: uuid.UUID) -> bool:
+    """Stop follower_id following followed_id. Returns whether a follow existed."""
+    existing = (
+        db.query(FollowModel)
+        .filter(FollowModel.follower_id == follower_id, FollowModel.followed_id == followed_id)
+        .first()
+    )
+    if not existing:
+        return False
+    db.delete(existing)
+    db.commit()
+    return True
+
+
+def get_following(db: Session, user_id: uuid.UUID) -> list[User] | None:
+    """List the users that user_id follows, or None if the user doesn't exist."""
+    user_model = db.get(UserModel, user_id)
+    if not user_model:
+        return None
+    return [_to_user(follow.followed) for follow in user_model.following]

@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
+import { Route, Routes, useParams } from "react-router-dom";
 import UserProfile from "./user.jsx";
+import ConceptDetailPage from "./conceptDetail.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
-export default function App() {
+function UserProfilePage() {
+  const { userId } = useParams();
+  return <UserProfile userId={userId} />;
+}
+
+function Home() {
   const [backendStatus, setBackendStatus] = useState("checking…");
   const [userId, setUserId] = useState("");
   const [viewedUserId, setViewedUserId] = useState(null);
@@ -23,7 +30,7 @@ export default function App() {
   }, []);
 
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 640, margin: "4rem auto", padding: "0 1rem" }}>
+    <>
       <h1>Museum</h1>
       <p>A collaborative knowledge graph.</p>
       <section>
@@ -48,6 +55,18 @@ export default function App() {
         </form>
         {viewedUserId && <UserProfile userId={viewedUserId} />}
       </section>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 640, margin: "4rem auto", padding: "0 1rem" }}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/concepts/:conceptId" element={<ConceptDetailPage />} />
+        <Route path="/users/:userId" element={<UserProfilePage />} />
+      </Routes>
     </main>
   );
 }

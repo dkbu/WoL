@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
+from uuid import UUID as PyUUID
 
-from sqlalchemy import Boolean, String
+from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import UUIDBase
@@ -23,4 +25,38 @@ class UserModel(UUIDBase):
         back_populates="creator",
         foreign_keys="CommentModel.creator_id",
         cascade="all, delete-orphan",
+    )
+    following: Mapped[list["FollowModel"]] = relationship(
+        back_populates="follower",
+        foreign_keys="FollowModel.follower_id",
+        cascade="all, delete-orphan",
+    )
+    followers: Mapped[list["FollowModel"]] = relationship(
+        back_populates="followed",
+        foreign_keys="FollowModel.followed_id",
+        cascade="all, delete-orphan",
+    )
+
+
+class FollowModel(UUIDBase):
+    """One user (follower) following another (followed)."""
+
+    __tablename__ = "follows"
+
+    __table_args__ = (
+        UniqueConstraint("follower_id", "followed_id", name="uq_follow_follower_followed"),
+    )
+
+    follower_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+    followed_id: Mapped[PyUUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
+
+    follower: Mapped["UserModel"] = relationship(
+        back_populates="following", foreign_keys=[follower_id]
+    )
+    followed: Mapped["UserModel"] = relationship(
+        back_populates="followers", foreign_keys=[followed_id]
     )

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const THUMBNAIL_STYLE = {
   width: 64,
   height: 64,
@@ -35,7 +37,9 @@ export default function ConceptCard({ concept }) {
     >
       <ConceptThumbnail name={concept.name} />
       <div>
-        <strong>{concept.name}</strong>
+        <Link to={`/concepts/${concept.id}`} style={{ fontWeight: 600, color: "#1d4ed8" }}>
+          {concept.name}
+        </Link>
         {concept.description && (
           <p style={{ margin: "0.25rem 0", color: "#475569" }}>{concept.description}</p>
         )}

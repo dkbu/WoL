@@ -1,20 +1,12 @@
-from uuid import UUID
-
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 from app.types import fed_id
 
 
 class FedIDModel(BaseModel):
-    """Base model for schemas with a `fed_id` id field, normalizing UUID to str."""
+    """Base model for schemas with a `fed_id` id field."""
 
     id: fed_id
-
-    @field_validator("id", mode="before")
-    def validate_id(cls, v):
-        if isinstance(v, UUID):
-            return str(v)
-        return v
 
 
 class ConceptCreationRequest(BaseModel):
