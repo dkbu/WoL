@@ -100,17 +100,23 @@ uv sync
 
 This creates a `.venv` directory inside `backend/` and installs all dependencies.
 
+> **Shortcut commands:** the project defines `uv run dev`, `uv run test`, and
+> `uv run migrate` as shortcuts for the commands below (see
+> [Shortcut commands](#shortcut-commands)).
+
 ### 5. Run database migrations
 
 ```powershell
 # Still inside backend/
 uv run alembic upgrade head
+# or: uv run migrate
 ```
 
 ### 6. Start the backend development server
 
 ```powershell
 uv run uvicorn app.main:app --reload
+# or: uv run dev
 ```
 
 The API is now available at `http://localhost:8000`.  
@@ -141,7 +147,22 @@ API requests to `/api/*` are proxied to the backend automatically.
 ```powershell
 cd backend
 uv run pytest
+# or: uv run test
 ```
+
+---
+
+## Shortcut commands
+
+From `backend/`, the following `uv run` shortcuts are available instead of the
+underlying commands:
+
+| Command | Equivalent to |
+|---------|---------------|
+| `uv run dev` | `uvicorn app.main:app --reload` |
+| `uv run test` | `pytest` |
+| `uv run migrate` | `alembic upgrade head` |
+| `uv run make-migrations "message"` | `alembic revision --autogenerate -m "message"` |
 
 ---
 
@@ -153,6 +174,8 @@ Create a new migration after changing models:
 cd backend
 uv run alembic revision --autogenerate -m "describe your change"
 uv run alembic upgrade head
+# or: uv run make-migrations "describe your change"
+#     uv run migrate
 ```
 
 ---

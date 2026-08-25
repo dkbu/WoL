@@ -24,6 +24,18 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def compare_type(context, inspected_column, metadata_column, inspected_type, metadata_type):
+    """Ignore SQLite's NUMERIC-affinity reflection of UUID columns.
+
+    SQLite has no native UUID type, so a column declared UUID always reflects
+    back with NUMERIC affinity. Without this, autogenerate would keep
+    detecting the same false-positive type change on every run.
+    """
+    if context.dialect.name == "sqlite" and metadata_type.__class__.__name__ == "UUID":
+        return inspected_type.__class__.__name__ not in ("NUMERIC", "Numeric")
+    return None
+
+
 def run_migrations_offline() -> None:
     url = settings.database_url
     context.configure(
@@ -32,6 +44,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         render_as_batch=url.startswith("sqlite"),
+        compare_type=compare_type,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -50,6 +63,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             render_as_batch=connection.dialect.name == "sqlite",
+            compare_type=compare_type,
         )
         with context.begin_transaction():
             context.run_migrations()

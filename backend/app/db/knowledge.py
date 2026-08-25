@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.models.knowledge import (
@@ -13,9 +14,13 @@ from app.schemas.knowledge import (
     Comment,
     CommentCreationRequest,
     Concept,
+    ConceptComment,
     ConceptCreationRequest,
+    ConceptCreator,
+    ConceptDetail,
     ConceptLink,
     ConceptLinkCreationRequest,
+    LinkedConcept,
 )
 from app.types import fed_id
 
@@ -45,6 +50,56 @@ def get_concept_by_id(db: Session, concept_id: uuid.UUID) -> Concept | None:
             description=concept_model.description,
         )
     return None
+
+
+def get_concept_detail(db: Session, concept_id: uuid.UUID) -> ConceptDetail | None:
+    """Retrieve a concept along with its creator, links, and comments."""
+    concept_model = db.query(ConceptModel).filter(ConceptModel.id == concept_id).first()
+    if not concept_model:
+        return None
+
+    creator = db.get(UserModel, concept_model.creator_id)
+    assert creator is not None  # enforced by the creator_id foreign key
+
+    links = (
+        db.query(ConceptLinkModel)
+        .filter(
+            or_(
+                ConceptLinkModel.source_concept_id == concept_id,
+                ConceptLinkModel.target_concept_id == concept_id,
+            )
+        )
+        .all()
+    )
+    linked_concept_ids = {
+        link.target_concept_id if link.source_concept_id == concept_id else link.source_concept_id
+        for link in links
+    }
+    linked_concepts = (
+        db.query(ConceptModel).filter(ConceptModel.id.in_(linked_concept_ids)).all()
+        if linked_concept_ids
+        else []
+    )
+
+    comments = db.query(CommentModel).filter(CommentModel.commentable_id == concept_id).all()
+
+    return ConceptDetail(
+        id=concept_model.id,
+        name=concept_model.name,
+        description=concept_model.description,
+        creator=ConceptCreator(id=creator.id, username=creator.username),
+        linked_concepts=[LinkedConcept(id=c.id, name=c.name) for c in linked_concepts],
+        comments=[
+            ConceptComment(
+                id=comment.id,
+                content=comment.content,
+                creator=ConceptCreator(
+                    id=comment.creator.id, username=comment.creator.username
+                ),
+            )
+            for comment in comments
+        ],
+    )
 
 
 def create_concept(db: Session, concept: ConceptCreationRequest) -> Concept:

@@ -22,6 +22,13 @@ dev = [
     "httpx2>=2.0.0",
 ]
 
+[project.scripts]
+dev = "app.cli:dev"
+test = "app.cli:test"
+migrate = "app.cli:migrate"
+seed = "app.seed:seed"
+make-migrations = "app.cli:make_migrations"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

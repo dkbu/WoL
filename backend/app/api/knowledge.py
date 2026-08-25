@@ -10,6 +10,7 @@ from app.schemas.knowledge import (
     CommentCreationRequest,
     Concept,
     ConceptCreationRequest,
+    ConceptDetail,
     ConceptLink,
     ConceptLinkCreationRequest,
 )
@@ -28,6 +29,17 @@ def get_concept(
     db: Session = Depends(get_db),
 ) -> Concept | None:
     return db_knowledge.get_concept_by_id(db, concept_id)
+
+
+@router.get("/knowledge/concepts/{concept_id}/detail")
+def get_concept_detail(
+    concept_id: uuid.UUID,
+    db: Session = Depends(get_db),
+) -> ConceptDetail:
+    result = db_knowledge.get_concept_detail(db, concept_id)
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Concept not found.")
+    return result
 
 
 @router.post("/knowledge/concepts")
