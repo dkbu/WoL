@@ -2,31 +2,118 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from app.models.knowledge import ConceptModel
-from app.schemas.knowledge import Concept, ConceptCreationRequest
+from app.models.knowledge import (
+    Commentable,
+    CommentModel,
+    ConceptLinkModel,
+    ConceptModel,
+)
+from app.models.users import UserModel
+from app.schemas.knowledge import (
+    Comment,
+    CommentCreationRequest,
+    Concept,
+    ConceptCreationRequest,
+    ConceptLink,
+    ConceptLinkCreationRequest,
+)
+from app.types import fed_id
 
 
 def get_all_concepts(db: Session) -> list[Concept]:
     """Retrieve all concepts from the database."""
     concepts = db.query(ConceptModel).all()
-    return [Concept(id=c.id, name=c.name, description=c.description) for c in concepts]
+    return [
+        Concept(
+            id=concept.id,
+            creator_id=concept.creator_id,
+            name=concept.name,
+            description=concept.description,
+        )
+        for concept in concepts
+    ]
 
 
 def get_concept_by_id(db: Session, concept_id: uuid.UUID) -> Concept | None:
     """Retrieve a concept by its ID from the database."""
     concept_model = db.query(ConceptModel).filter(ConceptModel.id == concept_id).first()
     if concept_model:
-        return Concept(id=concept_model.id, name=concept_model.name, description=concept_model.description)
+        return Concept(
+            id=concept_model.id,
+            creator_id=concept_model.creator_id,
+            name=concept_model.name,
+            description=concept_model.description,
+        )
     return None
 
 
 def create_concept(db: Session, concept: ConceptCreationRequest) -> Concept:
     """Create a new concept in the database."""
-    new_concept = ConceptModel(name=concept.name, description=concept.description)
+    new_concept = ConceptModel(
+        creator_id=concept.creator_id,
+        name=concept.name,
+        description=concept.description,
+    )
     db.add(new_concept)
     db.commit()
     db.refresh(new_concept)
-    return Concept(id=new_concept.id, name=new_concept.name, description=new_concept.description)
+    return Concept(
+        id=new_concept.id,
+        creator_id=new_concept.creator_id,
+        name=new_concept.name,
+        description=new_concept.description,
+    )
+
+
+def create_concept_link(
+    db: Session, concept_link: ConceptLinkCreationRequest
+) -> ConceptLink | None:
+    """Link two existing concepts."""
+    source = db.get(ConceptModel, concept_link.source_concept_id)
+    target = db.get(ConceptModel, concept_link.target_concept_id)
+    creator = db.get(UserModel, concept_link.creator_id)
+    if not source or not target or not creator:
+        return None
+
+    new_link = ConceptLinkModel(
+        creator_id=concept_link.creator_id,
+        source_concept_id=concept_link.source_concept_id,
+        target_concept_id=concept_link.target_concept_id,
+    )
+    db.add(new_link)
+    db.commit()
+    db.refresh(new_link)
+    return ConceptLink(
+        id=new_link.id,
+        creator_id=new_link.creator_id,
+        source_concept_id=new_link.source_concept_id,
+        target_concept_id=new_link.target_concept_id,
+    )
+
+
+def create_comment(
+    db: Session, commentable_id: fed_id, comment: CommentCreationRequest
+) -> Comment | None:
+    """Add a comment to an existing concept or concept link."""
+    commentable = db.get(Commentable, commentable_id)
+    creator = db.get(UserModel, comment.creator_id)
+    if not commentable or not creator:
+        return None
+
+    new_comment = CommentModel(
+        commentable_id=commentable_id,
+        creator_id=comment.creator_id,
+        content=comment.content,
+    )
+    db.add(new_comment)
+    db.commit()
+    db.refresh(new_comment)
+    return Comment(
+        id=new_comment.id,
+        commentable_id=new_comment.commentable_id,
+        creator_id=new_comment.creator_id,
+        content=new_comment.content,
+    )
 
 
 def update_concept(db: Session, concept: Concept) -> Concept | None:
@@ -42,4 +129,9 @@ def update_concept(db: Session, concept: Concept) -> Concept | None:
 
     db.commit()
     db.refresh(concept_model)
-    return Concept(id=concept_model.id, name=concept_model.name, description=concept_model.description)
+    return Concept(
+        id=concept_model.id,
+        creator_id=concept_model.creator_id,
+        name=concept_model.name,
+        description=concept_model.description,
+    )

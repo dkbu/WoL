@@ -1,12 +1,15 @@
 
 import uuid
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import UUIDBase
+
+if TYPE_CHECKING:
+    from app.models.users import UserModel  # noqa: F401
 
 
 class Commentable(UUIDBase):
@@ -20,6 +23,18 @@ class Commentable(UUIDBase):
         back_populates="commentable",
         foreign_keys="CommentModel.commentable_id",
         cascade="all, delete-orphan",
+    )
+
+    creator: Mapped["UserModel"] = relationship(
+        back_populates="commentables",
+        foreign_keys="Commentable.creator_id",
+    )
+
+    creator_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        unique=False,
+        nullable=False,
     )
 
     __mapper_args__: ClassVar[dict[str, object]] = {  # type: ignore[reportIncompatibleVariableOverride]
@@ -72,11 +87,13 @@ class ConceptLinkModel(Commentable):
 
     source_concept_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("concepts.id"),
         unique=False,
         nullable=False,
     )
     target_concept_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("concepts.id"),
         unique=False,
         nullable=False,
     )
@@ -102,4 +119,13 @@ class CommentModel(UUIDBase):
         back_populates="comments",
         foreign_keys=[commentable_id],
     )
-
+    creator_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        unique=False,
+        nullable=False,
+    )
+    creator: Mapped["UserModel"] = relationship(
+        back_populates="user_comments",
+        foreign_keys="CommentModel.creator_id",
+    )

@@ -4,6 +4,7 @@ from app.models.knowledge import (
     ConceptLinkModel,
     ConceptModel,
 )
+from app.models.users import UserModel
 
 __all__ = [
     "Base",
@@ -11,5 +12,6 @@ __all__ = [
     "ConceptLinkModel",
     "ConceptModel",
     "UUIDBase",
+    "UserModel",
     "new_uuid",
 ]
