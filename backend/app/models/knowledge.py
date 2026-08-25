@@ -65,6 +65,15 @@ class ConceptModel(Commentable):
         nullable=True,
     )
 
+    outgoing_links: Mapped[list["ConceptLinkModel"]] = relationship(
+        back_populates="source_concept",
+        foreign_keys="ConceptLinkModel.source_concept_id",
+    )
+    incoming_links: Mapped[list["ConceptLinkModel"]] = relationship(
+        back_populates="target_concept",
+        foreign_keys="ConceptLinkModel.target_concept_id",
+    )
+
 
 class ConceptLinkModel(Commentable):
     """SQLAlchemy model for concept link."""
@@ -96,6 +105,15 @@ class ConceptLinkModel(Commentable):
         ForeignKey("concepts.id"),
         unique=False,
         nullable=False,
+    )
+
+    source_concept: Mapped["ConceptModel"] = relationship(
+        back_populates="outgoing_links",
+        foreign_keys=[source_concept_id],
+    )
+    target_concept: Mapped["ConceptModel"] = relationship(
+        back_populates="incoming_links",
+        foreign_keys=[target_concept_id],
     )
 
 

@@ -1,6 +1,5 @@
 import uuid
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.models.knowledge import (
@@ -61,25 +60,9 @@ def get_concept_detail(db: Session, concept_id: uuid.UUID) -> ConceptDetail | No
     creator = db.get(UserModel, concept_model.creator_id)
     assert creator is not None  # enforced by the creator_id foreign key
 
-    links = (
-        db.query(ConceptLinkModel)
-        .filter(
-            or_(
-                ConceptLinkModel.source_concept_id == concept_id,
-                ConceptLinkModel.target_concept_id == concept_id,
-            )
-        )
-        .all()
-    )
-    linked_concept_ids = {
-        link.target_concept_id if link.source_concept_id == concept_id else link.source_concept_id
-        for link in links
-    }
-    linked_concepts = (
-        db.query(ConceptModel).filter(ConceptModel.id.in_(linked_concept_ids)).all()
-        if linked_concept_ids
-        else []
-    )
+    linked_concepts = [link.target_concept for link in concept_model.outgoing_links] + [
+        link.source_concept for link in concept_model.incoming_links
+    ]
 
     comments = db.query(CommentModel).filter(CommentModel.commentable_id == concept_id).all()
 
