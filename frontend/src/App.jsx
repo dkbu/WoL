@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import UserProfile from "./user.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
 export default function App() {
   const [backendStatus, setBackendStatus] = useState("checking…");
+  const [userId, setUserId] = useState("");
+  const [viewedUserId, setViewedUserId] = useState(null);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/health`)
@@ -29,6 +32,23 @@ export default function App() {
           Status: <strong>{backendStatus}</strong>
         </p>
       </section>
+      <section>
+        <h2>User profile</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setViewedUserId(userId);
+          }}
+        >
+          <label>
+            User ID:{" "}
+            <input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="Enter a user ID" />
+          </label>
+          <button type="submit">View profile</button>
+        </form>
+        {viewedUserId && <UserProfile userId={viewedUserId} />}
+      </section>
     </main>
   );
 }
+
