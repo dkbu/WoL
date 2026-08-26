@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.db import knowledge as db_knowledge
-from app.deps import get_current_user, require_curator
+from app.deps import get_current_user, require_curator, require_curator_or_admin
 from app.schemas.knowledge import (
     Comment,
     CommentCreationRequest,
@@ -53,7 +53,7 @@ def get_concept_detail(
 def create_concept(
     concept: ConceptCreationRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_curator),
+    current_user: User = Depends(require_curator_or_admin),
 ) -> Concept:
     return db_knowledge.create_concept(db, current_user.id, concept)
 

@@ -1,28 +1,5 @@
 import { Link } from "react-router-dom";
-
-const THUMBNAIL_STYLE = {
-  width: 64,
-  height: 64,
-  borderRadius: 8,
-  background: "#e2e8f0",
-  color: "#475569",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "1.5rem",
-  fontWeight: 600,
-  flexShrink: 0,
-};
-
-// Stub: the backend does not yet provide concept thumbnail images.
-function ConceptThumbnail({ name }) {
-  const initial = name?.trim()?.[0]?.toUpperCase() ?? "?";
-  return (
-    <div style={THUMBNAIL_STYLE} aria-hidden="true">
-      {initial}
-    </div>
-  );
-}
+import ConceptThumbnail from "./conceptThumbnail.jsx";
 
 export default function ConceptCard({ concept }) {
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import UserTag from "./userTag.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
@@ -51,7 +51,7 @@ export default function AdminUsers() {
         <tbody>
           {users.map((u) => (
             <tr key={u.id}>
-              <td><Link to={`/users/${u.id}`}>{u.username}</Link></td>
+              <td><UserTag user={u} /></td>
               <td>
                 <input
                   type="checkbox"

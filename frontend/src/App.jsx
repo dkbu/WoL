@@ -1,6 +1,7 @@
 import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
 import UserProfile from "./user.jsx";
 import ConceptDetailPage from "./conceptDetail.jsx";
+import CreateConcept from "./createConcept.jsx";
 import Login from "./login.jsx";
 import AdminUsers from "./adminUsers.jsx";
 import { AuthProvider, useAuth } from "./authContext.jsx";
@@ -20,6 +21,14 @@ function RequireAdmin({ children }) {
   return children;
 }
 
+function RequireCuratorOrAdmin({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <p>Loading…</p>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.is_curator && !user.is_admin) return <p role="alert">Curators or admins only.</p>;
+  return children;
+}
+
 function Header() {
   const { user, logout } = useAuth();
   if (!user) return null;
@@ -36,9 +45,16 @@ function Header() {
           </>
         )}
       </span>
-      <button type="button" onClick={logout}>
-        Log out
-      </button>
+      <span style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        {(user.is_curator || user.is_admin) && (
+          <Link to="/concepts/new">
+            <button type="button">Create concept</button>
+          </Link>
+        )}
+        <button type="button" onClick={logout}>
+          Log out
+        </button>
+      </span>
     </header>
   );
 }
@@ -93,6 +109,15 @@ export default function App() {
                 <Header />
                 <AdminUsers />
               </RequireAdmin>
+            }
+          />
+          <Route
+            path="/concepts/new"
+            element={
+              <RequireCuratorOrAdmin>
+                <Header />
+                <CreateConcept />
+              </RequireCuratorOrAdmin>
             }
           />
         </Routes>

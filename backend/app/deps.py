@@ -60,3 +60,13 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
             detail="Only admins may perform this action.",
         )
     return current_user
+
+
+def require_curator_or_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Same as `get_current_user`, but additionally requires curator or admin status."""
+    if not current_user.is_curator and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only curators or admins may perform this action.",
+        )
+    return current_user

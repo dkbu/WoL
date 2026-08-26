@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import UserTag from "./userTag.jsx";
+import ConceptThumbnail from "./conceptThumbnail.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
@@ -29,10 +31,15 @@ export default function ConceptDetailPage() {
       <p>
         <Link to="/">&larr; Back</Link>
       </p>
-      <h2 style={{ margin: 0 }}>{concept.name}</h2>
-      <p style={{ color: "#64748b" }}>
-        Created by <Link to={`/users/${concept.creator.id}`}>{concept.creator.username}</Link>
-      </p>
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <ConceptThumbnail name={concept.name} size={80} />
+        <div>
+          <h2 style={{ margin: 0 }}>{concept.name}</h2>
+          <p style={{ color: "#64748b", margin: "0.25rem 0 0" }}>
+            Created by <UserTag user={concept.creator} />
+          </p>
+        </div>
+      </div>
       {concept.description && <p>{concept.description}</p>}
 
       <section style={{ marginTop: "1.5rem" }}>
@@ -58,9 +65,7 @@ export default function ConceptDetailPage() {
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {concept.comments.map((comment) => (
               <li key={comment.id} style={{ padding: "0.5rem 0", borderBottom: "1px solid #e2e8f0" }}>
-                <strong>
-                  <Link to={`/users/${comment.creator.id}`}>{comment.creator.username}</Link>
-                </strong>
+                <UserTag user={comment.creator} />
                 <p style={{ margin: "0.25rem 0" }}>{comment.content}</p>
               </li>
             ))}

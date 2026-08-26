@@ -86,6 +86,18 @@ def test_create_concept_requires_curator(noncurator_client: TestClient) -> None:
     assert response.status_code == 403
 
 
+def test_create_concept_allows_admin(admin_client: TestClient) -> None:
+    payload = {"name": "Museum", "description": "A knowledge graph"}
+    expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+
+    with patch(
+        "app.api.knowledge.db_knowledge.create_concept", return_value=Concept(**expected)
+    ):
+        response = admin_client.post("/api/knowledge/concepts", json=payload)
+
+    assert response.status_code == 200
+
+
 def test_create_concept_requires_login(anon_client: TestClient) -> None:
     payload = {"name": "Museum", "description": "A knowledge graph"}
 
