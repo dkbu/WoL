@@ -34,7 +34,7 @@ export default function AdminUsers() {
     loadUsers();
   };
 
-  if (error) return <p role="alert">{error}</p>;
+  if (error) return <p role="alert" className="error-text">{error}</p>;
   if (!users) return <p>Loading users…</p>;
 
   return (

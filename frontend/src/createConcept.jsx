@@ -37,7 +37,7 @@ export default function CreateConcept() {
   return (
     <section style={{ maxWidth: 480, margin: "2rem auto" }}>
       <h1>Create concept</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <form onSubmit={handleSubmit} className="form">
         <label>
           Name
           <input value={name} onChange={(e) => setName(e.target.value)} required />
@@ -46,12 +46,12 @@ export default function CreateConcept() {
           Description
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
         </label>
-        {error && <p role="alert" style={{ color: "#b91c1c" }}>{error}</p>}
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <button type="submit" disabled={submitting}>
+        {error && <p role="alert" className="error-text">{error}</p>}
+        <div className="form-actions">
+          <button className="button" type="submit" disabled={submitting}>
             Submit
           </button>
-          <button type="button" onClick={() => navigate(-1)} disabled={submitting}>
+          <button className="button" type="button" onClick={() => navigate(-1)} disabled={submitting}>
             Cancel
           </button>
         </div>

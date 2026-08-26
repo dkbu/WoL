@@ -33,7 +33,7 @@ function Header() {
   const { user, logout } = useAuth();
   if (!user) return null;
   return (
-    <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <header className="header">
       <span>
         Logged in as <strong>{user.username}</strong>
         {user.is_curator && " (curator)"}
@@ -45,13 +45,13 @@ function Header() {
           </>
         )}
       </span>
-      <span style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+      <span className="header-actions">
         {(user.is_curator || user.is_admin) && (
           <Link to="/concepts/new">
-            <button type="button">Create concept</button>
+            <button className="button" type="button">Create concept</button>
           </Link>
         )}
-        <button type="button" onClick={logout}>
+        <button className="button" type="button" onClick={logout}>
           Log out
         </button>
       </span>
@@ -72,7 +72,7 @@ function Home() {
 export default function App() {
   return (
     <AuthProvider>
-      <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 640, margin: "4rem auto", padding: "0 1rem" }}>
+      <main className="page">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route

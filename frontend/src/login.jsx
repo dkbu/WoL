@@ -41,7 +41,7 @@ export default function Login() {
   return (
     <section style={{ maxWidth: 320, margin: "4rem auto" }}>
       <h1>{mode === "login" ? "Log in" : "Create account"}</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <form onSubmit={handleSubmit} className="form">
         <label>
           Username
           <input
@@ -62,8 +62,8 @@ export default function Login() {
             autoComplete={mode === "login" ? "current-password" : "new-password"}
           />
         </label>
-        {error && <p role="alert" style={{ color: "#b91c1c" }}>{error}</p>}
-        <button type="submit" disabled={submitting}>
+        {error && <p role="alert" className="error-text">{error}</p>}
+        <button className="button" type="submit" disabled={submitting}>
           {mode === "login" ? "Log in" : "Create account"}
         </button>
       </form>
@@ -73,7 +73,7 @@ export default function Login() {
           setMode(mode === "login" ? "register" : "login");
           setError(null);
         }}
-        style={{ marginTop: "1rem", background: "none", border: "none", color: "#1d4ed8", cursor: "pointer" }}
+        className="link-button"
       >
         {mode === "login" ? "Need an account? Register" : "Already have an account? Log in"}
       </button>
