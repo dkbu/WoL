@@ -15,7 +15,9 @@ class UserModel(UUIDBase):
     __tablename__ = "users"
     
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_curator: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     commentables: Mapped[list["Commentable"]] = relationship(
         back_populates="creator",
         foreign_keys="Commentable.creator_id",

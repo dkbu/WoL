@@ -10,7 +10,6 @@ class FedIDModel(BaseModel):
 
 
 class ConceptCreationRequest(BaseModel):
-    creator_id: fed_id
     name: str
     description: str | None = None
 
@@ -22,7 +21,6 @@ class Concept(FedIDModel):
 
 
 class ConceptLinkCreationRequest(BaseModel):
-    creator_id: fed_id
     source_concept_id: fed_id
     target_concept_id: fed_id
 
@@ -35,7 +33,6 @@ class ConceptLink(FedIDModel):
 
 class CommentCreationRequest(BaseModel):
     commentable_id: fed_id
-    creator_id: fed_id
     content: str
 
 

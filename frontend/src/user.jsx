@@ -12,7 +12,7 @@ export default function UserProfile({ userId }) {
     setProfile(null);
     setError(null);
 
-    fetch(`${BACKEND_URL}/api/users/${userId}/profile`)
+    fetch(`${BACKEND_URL}/api/users/${userId}/profile`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

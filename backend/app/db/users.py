@@ -6,6 +6,7 @@ from app.models.knowledge import ConceptModel
 from app.models.users import FollowModel, UserModel
 from app.schemas.knowledge import Concept
 from app.schemas.users import User, UserCreationRequest, UserProfile
+from app.security import hash_password, verify_password
 
 
 def _to_concept(concept_model: ConceptModel) -> Concept:
@@ -22,11 +23,7 @@ def get_user_by_id(db: Session, user_id: uuid.UUID) -> User | None:
     user_model = db.get(UserModel, user_id)
     if not user_model:
         return None
-    return User(
-        id=user_model.id,
-        username=user_model.username,
-        is_curator=user_model.is_curator,
-    )
+    return _to_user(user_model)
 
 
 def get_user_profile(db: Session, user_id: uuid.UUID) -> UserProfile | None:
@@ -46,11 +43,7 @@ def get_user_profile(db: Session, user_id: uuid.UUID) -> UserProfile | None:
     }
 
     return UserProfile(
-        user=User(
-            id=user_model.id,
-            username=user_model.username,
-            is_curator=user_model.is_curator,
-        ),
+        user=_to_user(user_model),
         created_concepts=[_to_concept(c) for c in created_concepts],
         commented_concepts=[_to_concept(c) for c in commented_concepts.values()],
     )
@@ -60,6 +53,7 @@ def _to_user(user_model: UserModel) -> User:
         id=user_model.id,
         username=user_model.username,
         is_curator=user_model.is_curator,
+        is_admin=user_model.is_admin,
     )
 
 
@@ -75,20 +69,47 @@ def search_users_by_username(db: Session, username: str) -> list[User]:
 
 
 def create_user(db: Session, user: UserCreationRequest) -> User:
-    """Create a new user in the database."""
+    """Create a new user in the database. Always starts with no elevated roles."""
 
     user_model = UserModel(
         username=user.username,
-        is_curator=user.is_curator,
+        password_hash=hash_password(user.password),
+        is_curator=False,
+        is_admin=False,
     )
     db.add(user_model)
     db.commit()
     db.refresh(user_model)
-    return User(
-        id=user_model.id,
-        username=user_model.username,
-        is_curator=user_model.is_curator,
-    )
+    return _to_user(user_model)
+
+
+def set_user_roles(
+    db: Session,
+    user_id: uuid.UUID,
+    is_curator: bool | None = None,
+    is_admin: bool | None = None,
+) -> User | None:
+    """Grant or revoke curator/admin status. Admin-only; None leaves a field unchanged."""
+    user_model = db.get(UserModel, user_id)
+    if not user_model:
+        return None
+
+    if is_curator is not None:
+        user_model.is_curator = is_curator
+    if is_admin is not None:
+        user_model.is_admin = is_admin
+
+    db.commit()
+    db.refresh(user_model)
+    return _to_user(user_model)
+
+
+def authenticate_user(db: Session, username: str, password: str) -> User | None:
+    """Verify credentials and return the user, or None if invalid."""
+    user_model = db.query(UserModel).filter(UserModel.username == username).first()
+    if not user_model or not verify_password(password, user_model.password_hash):
+        return None
+    return _to_user(user_model)
 
 
 def follow_user(db: Session, follower_id: uuid.UUID, followed_id: uuid.UUID) -> User | None:

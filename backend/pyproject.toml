@@ -13,6 +13,8 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
     "uuid6>=2022.10.25",
+    "argon2-cffi>=23.1.0",
+    "pyjwt>=2.9.0",
 ]
 
 [project.optional-dependencies]

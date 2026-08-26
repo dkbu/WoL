@@ -85,10 +85,10 @@ def get_concept_detail(db: Session, concept_id: uuid.UUID) -> ConceptDetail | No
     )
 
 
-def create_concept(db: Session, concept: ConceptCreationRequest) -> Concept:
+def create_concept(db: Session, creator_id: fed_id, concept: ConceptCreationRequest) -> Concept:
     """Create a new concept in the database."""
     new_concept = ConceptModel(
-        creator_id=concept.creator_id,
+        creator_id=creator_id,
         name=concept.name,
         description=concept.description,
     )
@@ -104,17 +104,17 @@ def create_concept(db: Session, concept: ConceptCreationRequest) -> Concept:
 
 
 def create_concept_link(
-    db: Session, concept_link: ConceptLinkCreationRequest
+    db: Session, creator_id: fed_id, concept_link: ConceptLinkCreationRequest
 ) -> ConceptLink | None:
     """Link two existing concepts."""
     source = db.get(ConceptModel, concept_link.source_concept_id)
     target = db.get(ConceptModel, concept_link.target_concept_id)
-    creator = db.get(UserModel, concept_link.creator_id)
+    creator = db.get(UserModel, creator_id)
     if not source or not target or not creator:
         return None
 
     new_link = ConceptLinkModel(
-        creator_id=concept_link.creator_id,
+        creator_id=creator_id,
         source_concept_id=concept_link.source_concept_id,
         target_concept_id=concept_link.target_concept_id,
     )
@@ -130,17 +130,17 @@ def create_concept_link(
 
 
 def create_comment(
-    db: Session, commentable_id: fed_id, comment: CommentCreationRequest
+    db: Session, commentable_id: fed_id, creator_id: fed_id, comment: CommentCreationRequest
 ) -> Comment | None:
     """Add a comment to an existing concept or concept link."""
     commentable = db.get(Commentable, commentable_id)
-    creator = db.get(UserModel, comment.creator_id)
+    creator = db.get(UserModel, creator_id)
     if not commentable or not creator:
         return None
 
     new_comment = CommentModel(
         commentable_id=commentable_id,
-        creator_id=comment.creator_id,
+        creator_id=creator_id,
         content=comment.content,
     )
     db.add(new_comment)

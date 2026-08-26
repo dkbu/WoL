@@ -12,7 +12,7 @@ export default function ConceptDetailPage() {
     setConcept(null);
     setError(null);
 
-    fetch(`${BACKEND_URL}/api/knowledge/concepts/${conceptId}/detail`)
+    fetch(`${BACKEND_URL}/api/knowledge/concepts/${conceptId}/detail`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

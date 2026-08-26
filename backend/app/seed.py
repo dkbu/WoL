@@ -8,8 +8,13 @@ from __future__ import annotations
 from app.db.session import SessionLocal
 from app.models.knowledge import CommentModel, ConceptModel
 from app.models.users import UserModel
+from app.security import hash_password
 
 USERNAMES = ["steve", "robin", "eddie"]
+SEED_PASSWORD = "password123"  # noqa: S105 - demo-only seed data, not a real secret
+
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin"  # noqa: S105 - local dev only; change before deploying anywhere real
 
 
 def seed() -> None:
@@ -19,7 +24,24 @@ def seed() -> None:
             print("Seed data already present, skipping.")
             return
 
-        users = {name: UserModel(username=name, is_curator=False) for name in USERNAMES}
+        if not db.query(UserModel).filter(UserModel.username == ADMIN_USERNAME).first():
+            db.add(
+                UserModel(
+                    username=ADMIN_USERNAME,
+                    password_hash=hash_password(ADMIN_PASSWORD),
+                    is_curator=True,
+                    is_admin=True,
+                )
+            )
+
+        users = {
+            name: UserModel(
+                username=name,
+                password_hash=hash_password(SEED_PASSWORD),
+                is_curator=True,
+            )
+            for name in USERNAMES
+        }
         db.add_all(users.values())
         db.flush()
 
@@ -49,7 +71,7 @@ def seed() -> None:
                     )
 
         db.commit()
-        print("Seeded 3 users, 6 concepts, and 12 comments.")
+        print("Seeded 1 admin user, 3 demo users, 6 concepts, and 12 comments.")
     finally:
         db.close()
 

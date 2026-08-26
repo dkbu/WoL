@@ -6,6 +6,7 @@ from app.schemas.users import User
 from fastapi.testclient import TestClient
 
 from app.schemas.knowledge import Comment, Concept, ConceptLink
+from tests.conftest import TEST_USER_ID
 
 CONCEPT_ID = "123e4567-e89b-12d3-a456-426614174000"
 SECOND_CONCEPT_ID = "223e4567-e89b-12d3-a456-426614174000"
@@ -61,11 +62,10 @@ def test_get_concept_returns_service_result(client: TestClient) -> None:
 
 def test_create_concept_returns_created_concept(client: TestClient) -> None:
     payload = {
-        "creator_id": CREATOR_ID,
         "name": "Museum",
         "description": "A knowledge graph",
     }
-    expected = {"id": CONCEPT_ID, **payload}
+    expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept",
@@ -78,13 +78,28 @@ def test_create_concept_returns_created_concept(client: TestClient) -> None:
     create_concept.assert_called_once()
 
 
+def test_create_concept_requires_curator(noncurator_client: TestClient) -> None:
+    payload = {"name": "Museum", "description": "A knowledge graph"}
+
+    response = noncurator_client.post("/api/knowledge/concepts", json=payload)
+
+    assert response.status_code == 403
+
+
+def test_create_concept_requires_login(anon_client: TestClient) -> None:
+    payload = {"name": "Museum", "description": "A knowledge graph"}
+
+    response = anon_client.post("/api/knowledge/concepts", json=payload)
+
+    assert response.status_code == 401
+
+
 def test_create_concept_link_returns_created_link(client: TestClient) -> None:
     payload = {
-        "creator_id": CREATOR_ID,
         "source_concept_id": CONCEPT_ID,
         "target_concept_id": SECOND_CONCEPT_ID,
     }
-    expected = {"id": CONCEPT_ID, **payload}
+    expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept_link",
@@ -100,10 +115,9 @@ def test_create_concept_link_returns_created_link(client: TestClient) -> None:
 def test_create_comment_returns_created_comment(client: TestClient) -> None:
     payload = {
         "commentable_id": CONCEPT_ID,
-        "creator_id": CREATOR_ID,
         "content": "Useful context.",
     }
-    expected = {"id": SECOND_CONCEPT_ID, **payload}
+    expected = {"id": SECOND_CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_comment",
@@ -114,6 +128,19 @@ def test_create_comment_returns_created_comment(client: TestClient) -> None:
     assert response.status_code == 201
     assert response.json() == expected
     create_comment.assert_called_once()
+
+
+def test_create_comment_only_requires_login_not_curator(noncurator_client: TestClient) -> None:
+    payload = {"commentable_id": CONCEPT_ID, "content": "Useful context."}
+    expected = {"id": SECOND_CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+
+    with patch(
+        "app.api.knowledge.db_knowledge.create_comment",
+        return_value=Comment(**expected),
+    ):
+        response = noncurator_client.post("/api/knowledge/comments", json=payload)
+
+    assert response.status_code == 201
 
 
 def test_get_concept_rejects_an_invalid_uuid(client: TestClient) -> None:
@@ -137,9 +164,14 @@ def test_get_user_profile_rejects_an_invalid_uuid(client: TestClient) -> None:
 def test_create_user_successfully(client: TestClient) -> None:
     payload = {
         "username": "testuser",
-        "is_curator": True,
+        "password": "hunter2password",
     }
-    expected = {"id": "123e4567-e89b-12d3-a456-426614174000", **payload}
+    expected = {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "username": "testuser",
+        "is_curator": False,
+        "is_admin": False,
+    }
 
     with patch(
         "app.api.users.db_users.create_user",
@@ -152,12 +184,37 @@ def test_create_user_successfully(client: TestClient) -> None:
     create_user.assert_called_once()
 
 
+def test_create_user_does_not_require_login(anon_client: TestClient) -> None:
+    payload = {
+        "username": "testuser",
+        "password": "hunter2password",
+    }
+    expected = {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "username": "testuser",
+        "is_curator": False,
+        "is_admin": False,
+    }
+
+    with patch("app.api.users.db_users.create_user", return_value=User(**expected)):
+        response = anon_client.post("/api/users", json=payload)
+
+    assert response.status_code == 201
+
+
+def test_get_user_requires_login(anon_client: TestClient) -> None:
+    response = anon_client.get(f"/api/users/{CREATOR_ID}")
+
+    assert response.status_code == 401
+
+
 def test_get_user_successfully(client: TestClient) -> None:
     user_id = "123e4567-e89b-12d3-a456-426614174000"
     expected = {
         "id": user_id,
         "username": "testuser",
         "is_curator": True,
+        "is_admin": False,
     }
 
     with patch(
@@ -177,6 +234,7 @@ def test_get_user_profile_successfully(client: TestClient) -> None:
             "id": user_id,
             "username": "testuser",
             "is_curator": True,
+            "is_admin": False,
         },
         "created_concepts": [],
         "commented_concepts": [],

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.db import users as db_users
+from app.deps import get_current_user
 from app.schemas.users import User, UserCreationRequest, UserProfile
 
 router = APIRouter()
@@ -14,6 +15,7 @@ router = APIRouter()
 def search_users(
     username: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[User]:
     """Search users by a (partial, case-insensitive) username match."""
     return db_users.search_users_by_username(db, username)
@@ -23,6 +25,7 @@ def search_users(
 def get_user(
     user_id: uuid.UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> User:
     result = db_users.get_user_by_id(db, user_id)
     if result is None:
@@ -34,6 +37,7 @@ def get_user(
 def get_user_profile(
     user_id: uuid.UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> UserProfile:
     result = db_users.get_user_profile(db, user_id)
     if result is None:
@@ -53,6 +57,7 @@ def create_user(
 def get_following(
     user_id: uuid.UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[User]:
     result = db_users.get_following(db, user_id)
     if result is None:
@@ -65,6 +70,7 @@ def follow_user(
     user_id: uuid.UUID,
     target_user_id: uuid.UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> User:
     result = db_users.follow_user(db, user_id, target_user_id)
     if result is None:
@@ -80,6 +86,7 @@ def unfollow_user(
     user_id: uuid.UUID,
     target_user_id: uuid.UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> None:
     removed = db_users.unfollow_user(db, user_id, target_user_id)
     if not removed:

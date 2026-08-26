@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     app_env: str = "development"
     backend_cors_origins: list[str] = ["http://localhost:5173"]
 
+    # Auth
+    # NOTE: override via SECRET_KEY env var in any non-development environment.
+    secret_key: str = "dev-only-insecure-secret-change-me"
+    access_token_expire_minutes: int = 60 * 24 * 7  # 1 week
+
+    @property
+    def cookie_secure(self) -> bool:
+        return self.app_env != "development"
+
     @property
     def database_url(self) -> str:
         if self.db_url:
