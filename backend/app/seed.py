@@ -14,7 +14,7 @@ USERNAMES = ["steve", "robin", "eddie"]
 SEED_PASSWORD = "password123"  # noqa: S105 - demo-only seed data, not a real secret
 
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin"  # noqa: S105 - local dev only; change before deploying anywhere real
+ADMIN_PASSWORD = "admin123"  # noqa: S105 - local dev only; change before deploying anywhere real
 
 
 def seed() -> None:
