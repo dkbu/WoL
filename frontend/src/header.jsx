@@ -1,9 +1,10 @@
 import { useAuth } from "./authContext.jsx";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const [searchInput, setSearchInput] = useState("");
   const [searchType, setSearchType] = useState("Concept");
   const navigate = useNavigate();
@@ -34,6 +35,13 @@ export default function Header() {
               <button className="button" type="button">Create concept</button>
             </Link>
           )}
+          
+          {location.pathname.startsWith("/concepts/") && (
+            <Link to={`/links/new/${location.pathname.split("/concepts/")[1]}`}>
+              <button className="button" type="button">Create link</button>
+            </Link>
+          )}
+
           <form className="searchField" onSubmit={handleSearchSubmit}>
             <input
               type="text"

@@ -1,58 +1,38 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useConcepts } from "./searchData.jsx";
+import { useParams } from "react-router-dom";
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
+export default function CreateLink() {
+  const { sourceConceptId } = useParams();
+  const { data, isLoading, error } = useConcepts();
 
-export default function CreateConcept({origConcept, onSubmitted, onCancel}) {
-  const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const srcConceptName = data.find(concept => concept.id === sourceConceptId)?.name || "";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/knowledge/concepts`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source_concept_id: origConcept.id, tr`` || null }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.detail ?? "Could not create concept.");
-      }
-      const concept = await res.json();
-      onSubmitted?.(concept);
-    } catch (err) {
-      setError(err.message ?? "Something went wrong.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  if (isLoading) return <p>Loading…</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <section style={{ maxWidth: 480, margin: "2rem auto" }}>
-      <h1>Create concept</h1>
-      <form onSubmit={handleSubmit} className="form">
+      <h1>Create link</h1>
+      <form className="form">
         <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
+          Source Concept
+          <input type="text" value={srcConceptName} readOnly />
         </label>
         <label>
-          Description
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+          Target Concept 
+        <Autocomplete options={data} 
+        getOptionLabel={(option) => option.name}
+        getOptionKey={(option) => option.id}
+        renderInput={(params) => (
+          <TextField {...params} label="Target Concept" variant="standard" />
+        )}
+        />
         </label>
-        {error && <p role="alert" className="error-text">{error}</p>}
         <div className="form-actions">
-          <button className="button" type="submit" disabled={submitting}>
+          <button className="button" type="submit">
             Submit
-          </button>
-          <button className="button" type="button" onClick={onCancel} disabled={submitting}>
-            Cancel
           </button>
         </div>
       </form>

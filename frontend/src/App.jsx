@@ -3,6 +3,7 @@ import Header from "./header.jsx";
 import UserProfile from "./user.jsx";
 import ConceptDetailPage from "./conceptDetail.jsx";
 import CreateConcept from "./createConcept.jsx";
+import CreateLink from "./createLink.jsx";
 import Login from "./login.jsx";
 import AdminUsers from "./adminUsers.jsx";
 import { AuthProvider, useAuth } from "./authContext.jsx";
@@ -93,6 +94,15 @@ export default function App() {
               </RequireCuratorOrAdmin>
             }
           />
+          {<Route
+            path="/links/new/:sourceConceptId"
+            element={
+              <RequireCuratorOrAdmin>
+                <Header />
+                <CreateLink />
+              </RequireCuratorOrAdmin>
+            }
+          />}
           <Route
             path="/search/concept/:searchInput"
             element={
