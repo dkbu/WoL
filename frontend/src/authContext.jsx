@@ -32,7 +32,10 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
-      throw new Error("Incorrect username or password.");
+      if (res.status === 401) {
+        throw new Error("Incorrect username or password.");
+      }
+      throw new Error("Login failed.");
     }
     const loggedInUser = await res.json();
     setUser(loggedInUser);
