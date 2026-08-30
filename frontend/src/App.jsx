@@ -5,7 +5,7 @@ import CreateConcept from "./createConcept.jsx";
 import Login from "./login.jsx";
 import AdminUsers from "./adminUsers.jsx";
 import { AuthProvider, useAuth } from "./authContext.jsx";
-import SearchResults from "./searchResults.jsx";
+import { ConceptSearchResults, UserSearchResults } from "./searchResults.jsx";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -40,7 +40,7 @@ function Header() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    navigate(`/search?type=${searchType}&query=${encodeURIComponent(searchInput)}`);
+    navigate(`/search/${searchType.toLowerCase()}/${encodeURIComponent(searchInput)}`);
   };
 
   if (!user) return null;
@@ -52,7 +52,7 @@ function Header() {
           {user.is_curator && " (curator)"}
           {user.is_admin && " (admin)"}
           {user.is_admin && (
-            <>
+          <>
               {" "}
               · <Link to="/admin">Manage users</Link>
             </>
@@ -82,7 +82,7 @@ function Header() {
               <option value="User">User</option>
             </select>
             <input type="submit" value="Search" />
-          </form>
+          </form> 
           <button className="button" type="button" onClick={logout}>
             Log out
           </button>
@@ -154,14 +154,21 @@ export default function App() {
             }
           />
           <Route
-            path="/search"
+            path="/search/concept/:searchInput"
             element={
               <RequireAuth>
                 <Header />
-                <SearchResults 
-                  searchInput={searchInput}
-                  searchType={searchType}
-                />
+                <ConceptSearchResults/>
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/search/user/:searchInput"
+            element={
+              <RequireAuth>
+                <Header />
+                <UserSearchResults/>
               </RequireAuth>
             }
           />
@@ -172,3 +179,4 @@ export default function App() {
 }
 
 
+``

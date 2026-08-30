@@ -1,8 +1,10 @@
 import ConceptCard from "./concept.jsx";
 import UserTag from "./userTag.jsx";
 import { useConcepts, useUserSearch } from "./searchData.jsx";
+import { useParams } from "react-router-dom";
 
-function ConceptSearchResults({ searchInput }) {
+export function ConceptSearchResults() {
+  let { searchInput } = useParams();
   const { data: concepts, error, isLoading } = useConcepts();
 
   if (isLoading) return <p>Searching concepts…</p>;
@@ -23,7 +25,8 @@ function ConceptSearchResults({ searchInput }) {
   );
 }
 
-function UserSearchResults({ searchInput }) {
+export function UserSearchResults() {
+  let { searchInput } = useParams();
   const { data: users, error, isLoading } = useUserSearch(searchInput);
 
   if (isLoading) return <p>Searching users…</p>;
@@ -42,7 +45,11 @@ function UserSearchResults({ searchInput }) {
   );
 }
 
-export default function SearchResults({ searchInput, searchType }) {
+export default function SearchResults() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchInput = searchParams.get("query");
+    const searchType = searchParams.get("type");
+
     if (!searchInput) return null;
 
     if (searchType === "User") return <UserSearchResults searchInput={searchInput} />;
