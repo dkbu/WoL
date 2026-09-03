@@ -3,18 +3,15 @@ import { Link, useParams } from "react-router-dom";
 import UserTag from "./userTag.jsx";
 import ConceptThumbnail from "./conceptThumbnail.jsx";
 import CreateComment from "./comment.jsx";
-import { useConceptLinks, useConcept, getConceptById, useConcepts } from "./searchData.jsx";
+import { useConceptLinks, useConcept, useConcepts, getConceptTagProps } from "./searchData.jsx";
+import ConceptTag from "./conceptTag.jsx";
 
 export default function ConceptDetailPage() {
   const { conceptId } = useParams();
-  const { data: concepts, isLoading: conceptsIsLoading, error: conceptsError } = useConcepts();
   const { data: concept, isLoading: conceptIsLoading, error: conceptError } = useConcept(conceptId);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const { data: conceptLinks, isLoading, error: conceptLinksError } = useConceptLinks(conceptId);
-
-  function getTargetConceptName(linked) {
-    return getConceptById(concepts, linked.target_concept_id)?.name ?? "Unknown Concept";
-  }
+  const { data: concepts } = useConcepts();
 
   if (conceptError) return <p role="alert" className="error-text">{conceptError}</p>;
   if (conceptIsLoading) return <p>Loading concept…</p>;
@@ -37,9 +34,7 @@ export default function ConceptDetailPage() {
 
       <section className="section">
         <h3>Linked concepts</h3>
-        {conceptsError && <p role="alert" className="error-text">{conceptsError}</p>}
         {conceptLinksError && <p role="alert" className="error-text">{conceptLinksError}</p>}
-        {conceptsIsLoading && <p>Loading concepts…</p>}
         {isLoading && <p>Loading linked concepts…</p>}
         {!conceptLinks || conceptLinks.length === 0 ? (
           <p className="muted">No linked concepts yet.</p>
@@ -47,7 +42,9 @@ export default function ConceptDetailPage() {
           <ul>
             {conceptLinks.map((linked) => (
               <li key={linked.id}>
-                <Link to={`/links/${linked.id}`}>{getTargetConceptName(linked)}</Link>
+                <Link to={`links/${linked.id}`}>
+                  <ConceptTag {...getConceptTagProps(concepts, linked.target_concept_id, linked.id)} />
+                </Link>
               </li>
             ))}
           </ul>

@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import ConceptTag from "./conceptTag.jsx";
-import { useUser } from "./searchData.jsx";
+import { useConcepts, useUser, getConceptTagProps } from "./searchData.jsx";
 import { Link } from "react-router-dom";
 import UserTag from "./userTag.jsx";
 
@@ -26,6 +26,7 @@ export default function LinkDetail() {
 
     const { data: link, isLoading, error } = useLink(linkId);
     const { data: creator } = useUser(link?.creator_id);
+    const { data: concepts } = useConcepts();
 
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Error: {error.message}</p>;
@@ -35,9 +36,9 @@ export default function LinkDetail() {
         <Link to="/">&larr; Back</Link>
       </p>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-        <ConceptTag concept_id={link?.source_concept_id} size={80} />
+        <ConceptTag {...getConceptTagProps(concepts, link?.source_concept_id)} size={80} />
         and
-        <ConceptTag concept_id={link?.target_concept_id} size={80} />
+        <ConceptTag {...getConceptTagProps(concepts, link?.target_concept_id)} size={80} />
         <div>
             Created by {creator && <UserTag user={creator} />}
         </div>

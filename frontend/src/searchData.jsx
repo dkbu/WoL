@@ -46,6 +46,11 @@ export function getConceptNameById(concepts, id) {
   return getConceptById(concepts, id)?.name;
 }
 
+// Bundles the id/name pair ConceptTag needs, so callers can spread it directly.
+export function getConceptTagProps(concepts, id, linkId = null) {
+  return { concept_id: id, concept_name: getConceptNameById(concepts, id), linkId };
+}
+
 export function useUserSearch(username) {
   return useQuery({
     queryKey: ["users", "search", username],
