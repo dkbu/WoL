@@ -8,6 +8,8 @@ import Login from "./login.jsx";
 import AdminUsers from "./adminUsers.jsx";
 import { AuthProvider, useAuth } from "./authContext.jsx";
 import { ConceptSearchResults, UserSearchResults } from "./searchResults.jsx";
+import LinkDetail from "./linkDetail.jsx";
+
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -94,7 +96,7 @@ export default function App() {
               </RequireCuratorOrAdmin>
             }
           />
-          {<Route
+          <Route
             path="/links/new/:sourceConceptId"
             element={
               <RequireCuratorOrAdmin>
@@ -102,7 +104,16 @@ export default function App() {
                 <CreateLink />
               </RequireCuratorOrAdmin>
             }
-          />}
+          />
+          <Route
+            path="/links/:linkId"
+            element={
+              <RequireCuratorOrAdmin>
+                <Header />
+                <LinkDetail />
+              </RequireCuratorOrAdmin>
+            }
+          />
           <Route
             path="/search/concept/:searchInput"
             element={

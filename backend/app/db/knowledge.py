@@ -103,20 +103,41 @@ def create_concept(db: Session, creator_id: fed_id, concept: ConceptCreationRequ
     )
 
 
+def get_link_if_exists(db: Session, source_concept_id: fed_id, target_concept_id: fed_id) -> bool:
+    """Check if a link already exists between two concepts."""
+    link = (
+        db.query(ConceptLinkModel)
+        .filter(
+            ConceptLinkModel.source_concept_id == source_concept_id,
+            ConceptLinkModel.target_concept_id == target_concept_id,
+        )
+        .first()
+    )
+    return link is not None
+
 def create_concept_link(
     db: Session, creator_id: fed_id, concept_link: ConceptLinkCreationRequest
-) -> ConceptLink | None:
+) -> ConceptLink:
+    existing = get_link_if_exists(db, concept_link.source_concept_id, concept_link.target_concept_id)
+    if existing:
+        raise ValueError("Concept link already exists.")
+    
     """Link two existing concepts."""
     source = db.get(ConceptModel, concept_link.source_concept_id)
+    if not source:
+        raise ValueError(f"Source concept {concept_link.source_concept_id} not found.")
     target = db.get(ConceptModel, concept_link.target_concept_id)
+    if not target:
+        raise ValueError(f"Target concept {concept_link.target_concept_id} not found.")
     creator = db.get(UserModel, creator_id)
-    if not source or not target or not creator:
-        return None
+    if not creator:
+        raise ValueError(f"Creator {creator_id} not found.")
 
     new_link = ConceptLinkModel(
         creator_id=creator_id,
         source_concept_id=concept_link.source_concept_id,
         target_concept_id=concept_link.target_concept_id,
+        connection=concept_link.connection,
     )
     db.add(new_link)
     db.commit()
@@ -126,6 +147,21 @@ def create_concept_link(
         creator_id=new_link.creator_id,
         source_concept_id=new_link.source_concept_id,
         target_concept_id=new_link.target_concept_id,
+        connection=new_link.connection,
+    )
+
+
+def get_link_by_id(db: Session, link_id: fed_id) -> ConceptLink | None:
+    """Retrieve a concept link by its ID."""
+    link_model = db.query(ConceptLinkModel).filter(ConceptLinkModel.id == link_id).first()
+    if not link_model:
+        return None
+    return ConceptLink(
+        id=link_model.id,
+        creator_id=link_model.creator_id,
+        source_concept_id=link_model.source_concept_id,
+        target_concept_id=link_model.target_concept_id,
+        connection=link_model.connection,
     )
 
 

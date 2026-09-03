@@ -64,13 +64,22 @@ def create_concept_link(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_curator),
 ) -> ConceptLink:
-    result = db_knowledge.create_concept_link(db, current_user.id, concept_link)
-    if result is None:
+    try:
+        result = db_knowledge.create_concept_link(db, current_user.id, concept_link)
+        return result
+    except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Source concept, target concept, or creator was not found.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         )
-    return result
+
+
+@router.get("/knowledge/links/{link_id}")
+def get_link(
+    link_id: uuid.UUID,
+    db: Session = Depends(get_db)
+) -> ConceptLink | None:
+    return db_knowledge.get_link_by_id(db, link_id)
 
 
 @router.post(

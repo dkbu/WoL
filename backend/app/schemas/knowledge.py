@@ -21,18 +21,19 @@ class Concept(FedIDModel):
 
 
 class ConceptLinkCreationRequest(BaseModel):
-    source_concept_id: fed_id
-    target_concept_id: fed_id
-
-
-class ConceptLink(FedIDModel):
     creator_id: fed_id
     source_concept_id: fed_id
     target_concept_id: fed_id
+    connection: str
+
+
+class ConceptLink(FedIDModel, ConceptLinkCreationRequest):
+    pass
 
 
 class CommentCreationRequest(BaseModel):
     commentable_id: fed_id
+    creator_id: fed_id
     content: str
 
 

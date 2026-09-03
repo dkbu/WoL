@@ -83,6 +83,11 @@ class ConceptLinkModel(Commentable):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("commentables.id"), primary_key=True
     )
+    connection: Mapped[str] = mapped_column(
+        String(255),
+        unique=False,
+        nullable=True,
+    )
 
     __mapper_args__: ClassVar[dict[str, object]] = {"polymorphic_identity": "concept_link"}
 

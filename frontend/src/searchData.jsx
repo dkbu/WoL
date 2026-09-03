@@ -15,6 +15,10 @@ export function useConcepts() {
   });
 }
 
+export function getConceptById(concepts, id) {
+  return concepts?.find(c => c.id === id);
+}
+
 export function useUserSearch(username) {
   return useQuery({
     queryKey: ["users", "search", username],

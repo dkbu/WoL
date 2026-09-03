@@ -1,11 +1,10 @@
 import ConceptCard from "./concept.jsx";
 import UserTag from "./userTag.jsx";
-import { useConcepts, useUserSearch } from "./searchData.jsx";
+import { useUserSearch } from "./searchData.jsx";
 import { useParams } from "react-router-dom";
 
 export function ConceptSearchResults() {
   let { searchInput } = useParams();
-  const { data: concepts, error, isLoading } = useConcepts();
 
   if (isLoading) return <p>Searching concepts…</p>;
   if (error) return <p role="alert" className="error-text">Could not search concepts.</p>;
