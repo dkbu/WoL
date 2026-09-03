@@ -19,6 +19,10 @@ export function getConceptById(concepts, id) {
   return concepts?.find(c => c.id === id);
 }
 
+export function getConceptNameById(concepts, id) {
+  return getConceptById(concepts, id)?.name;
+}
+
 export function useUserSearch(username) {
   return useQuery({
     queryKey: ["users", "search", username],
@@ -28,6 +32,20 @@ export function useUserSearch(username) {
         `${BACKEND_URL}/api/users/search?username=${encodeURIComponent(username)}`,
         { credentials: "include" }
       );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
+  });
+}
+
+export function useUser(userId) {
+  return useQuery({
+    queryKey: ["users", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const res = await fetch(`${BACKEND_URL}/api/users/${userId}`, {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
     },
