@@ -2,6 +2,29 @@ import { useQuery } from "@tanstack/react-query";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
+
+export function useConceptLinks(conceptId) {
+  return useQuery({
+    queryKey: ["conceptLinks", conceptId],
+    queryFn: async () => {
+      const res = await fetch(`${BACKEND_URL}/api/knowledge/concepts/${conceptId}/links`, { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
+  });
+}
+
+export function useConcept(conceptId) {
+  return useQuery({
+    queryKey: ["concept", conceptId],
+    queryFn: async () => {
+      const res = await fetch(`${BACKEND_URL}/api/knowledge/concepts/${conceptId}/detail`, { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
+  });
+}
+
 export function useConcepts() {
   return useQuery({
     queryKey: ["concepts"],

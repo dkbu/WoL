@@ -1,35 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import UserTag from "./userTag.jsx";
 import ConceptThumbnail from "./conceptThumbnail.jsx";
 import CreateComment from "./comment.jsx";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
+import { useConceptLinks, useConcept, getConceptById, useConcepts } from "./searchData.jsx";
 
 export default function ConceptDetailPage() {
   const { conceptId } = useParams();
-  const [concept, setConcept] = useState(null);
-  const [error, setError] = useState(null);
+  const { data: concepts, isLoading: conceptsIsLoading, error: conceptsError } = useConcepts();
+  const { data: concept, isLoading: conceptIsLoading, error: conceptError } = useConcept(conceptId);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const { data: conceptLinks, isLoading, error: conceptLinksError } = useConceptLinks(conceptId);
 
-  const loadConcept = () => {
-    fetch(`${BACKEND_URL}/api/knowledge/concepts/${conceptId}/detail`, { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(setConcept)
-      .catch(() => setError("Could not load this concept."));
-  };
+  function getTargetConceptName(linked) {
+    return getConceptById(concepts, linked.target_concept_id)?.name ?? "Unknown Concept";
+  }
 
-  useEffect(() => {
-    setConcept(null);
-    setError(null);
-    loadConcept();
-  }, [conceptId]);
-
-  if (error) return <p role="alert" className="error-text">{error}</p>;
-  if (!concept) return <p>Loading concept…</p>;
+  if (conceptError) return <p role="alert" className="error-text">{conceptError}</p>;
+  if (conceptIsLoading) return <p>Loading concept…</p>;
 
   return (
     <article>
@@ -49,13 +37,17 @@ export default function ConceptDetailPage() {
 
       <section className="section">
         <h3>Linked concepts</h3>
-        {concept.linked_concepts.length === 0 ? (
+        {conceptsError && <p role="alert" className="error-text">{conceptsError}</p>}
+        {conceptLinksError && <p role="alert" className="error-text">{conceptLinksError}</p>}
+        {conceptsIsLoading && <p>Loading concepts…</p>}
+        {isLoading && <p>Loading linked concepts…</p>}
+        {!conceptLinks || conceptLinks.length === 0 ? (
           <p className="muted">No linked concepts yet.</p>
         ) : (
           <ul>
-            {concept.linked_concepts.map((linked) => (
+            {conceptLinks.map((linked) => (
               <li key={linked.id}>
-                <Link to={`/concepts/${linked.id}`}>{linked.name}</Link>
+                <Link to={`/links/${linked.id}`}>{getTargetConceptName(linked)}</Link>
               </li>
             ))}
           </ul>
@@ -82,7 +74,6 @@ export default function ConceptDetailPage() {
             conceptId={conceptId}
             onSubmitted={() => {
               setShowCommentForm(false);
-              loadConcept();
             }}
             onCancel={() => setShowCommentForm(false)}
           />
