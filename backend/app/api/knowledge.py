@@ -73,6 +73,13 @@ def create_concept_link(
             detail=str(e),
         )
 
+@router.get("/knowledge/concepts/{concept_id}/links")
+def get_concept_links(
+    concept_id: uuid.UUID,
+    db: Session = Depends(get_db)
+) -> list[ConceptLink]:
+    return db_knowledge.get_concept_links(db, concept_id)
+
 
 @router.get("/knowledge/links/{link_id}")
 def get_link(

@@ -60,8 +60,8 @@ def get_concept_detail(db: Session, concept_id: uuid.UUID) -> ConceptDetail | No
     creator = db.get(UserModel, concept_model.creator_id)
     assert creator is not None  # enforced by the creator_id foreign key
 
-    linked_concepts = [link.target_concept for link in concept_model.outgoing_links] + [
-        link.source_concept for link in concept_model.incoming_links
+    linked_concepts = [
+        link.target_concept for link in concept_model.outgoing_links
     ]
 
     comments = db.query(CommentModel).filter(CommentModel.commentable_id == concept_id).all()
@@ -209,3 +209,20 @@ def update_concept(db: Session, concept: Concept) -> Concept | None:
         name=concept_model.name,
         description=concept_model.description,
     )
+
+
+def get_concept_links(db: Session, concept_id: fed_id) -> list[ConceptLink]:
+    """Retrieve all links associated with a given concept."""
+    link_models = db.query(ConceptLinkModel).filter(
+        (ConceptLinkModel.source_concept_id == concept_id) 
+    ).all()
+    return [
+        ConceptLink(
+            id=link_model.id,
+            creator_id=link_model.creator_id,
+            source_concept_id=link_model.source_concept_id,
+            target_concept_id=link_model.target_concept_id,
+            connection=link_model.connection,
+        )
+        for link_model in link_models
+    ]
