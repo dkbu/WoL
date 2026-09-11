@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import UserTag from "./userTag.jsx";
 import ConceptThumbnail from "./conceptThumbnail.jsx";
-import CreateComment from "./comment.jsx";
 import { useConceptLinks, useConcept, useConcepts, getConceptTagProps } from "./searchData.jsx";
 import ConceptTag from "./conceptTag.jsx";
+import CommentSection from "./commentSection.jsx";
 
 export default function ConceptDetailPage() {
   const { conceptId } = useParams();
   const { data: concept, isLoading: conceptIsLoading, error: conceptError } = useConcept(conceptId);
-  const [showCommentForm, setShowCommentForm] = useState(false);
+  
   const { data: conceptLinks, isLoading, error: conceptLinksError } = useConceptLinks(conceptId);
   const { data: concepts } = useConcepts();
 
@@ -51,35 +50,9 @@ export default function ConceptDetailPage() {
         )}
       </section>
 
-      <section className="section">
-        <h3>Comments</h3>
-        {concept.comments.length === 0 ? (
-          <p className="muted">No comments yet.</p>
-        ) : (
-          <ul className="list-plain">
-            {concept.comments.map((comment) => (
-              <li key={comment.id} style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-border)" }}>
-                <UserTag user={comment.creator} />
-                <p style={{ margin: "0.25rem 0" }}>{comment.content}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {showCommentForm ? (
-          <CreateComment
-            conceptId={conceptId}
-            onSubmitted={() => {
-              setShowCommentForm(false);
-            }}
-            onCancel={() => setShowCommentForm(false)}
-          />
-        ) : (
-          <button className="button" type="button" onClick={() => setShowCommentForm(true)}>
-            Add comment
-          </button>
-        )}
-      </section>
+      <CommentSection 
+        commentable_id={conceptId}
+      />
     </article>
-  );
+  );  
 }

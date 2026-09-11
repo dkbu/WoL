@@ -226,3 +226,16 @@ def get_concept_links(db: Session, concept_id: fed_id) -> list[ConceptLink]:
         )
         for link_model in link_models
     ]
+
+def get_comments(db: Session, commentable_id: fed_id) -> list[Comment]:
+    """Retrieve all comments associated with a given concept or concept link."""
+    comment_models = db.query(CommentModel).filter(CommentModel.commentable_id == commentable_id).all()
+    return [
+        Comment(
+            id=comment_model.id,
+            commentable_id=comment_model.commentable_id,
+            creator_id=comment_model.creator_id,
+            content=comment_model.content,
+        )
+        for comment_model in comment_models
+    ]

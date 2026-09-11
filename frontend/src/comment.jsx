@@ -1,27 +1,27 @@
 import { useState } from "react";
+import UserTag from "./userTag.jsx";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
+import { commentMutation as useCommentMutation } from "./searchData.jsx"; 
 
-export default function CreateComment({ conceptId, onSubmitted, onCancel }) {
+export function Comment({ comment }) {
+  return (
+    <p style={{ margin: "0.25rem 0" }}><UserTag user={{id: comment.creator}} />   {comment.content}</p>
+  );
+}
+
+export default function CreateComment({ commentable_id, onSubmitted, onCancel }) {
   const [content, setContent] = useState("");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const commentMutation = useCommentMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/knowledge/comments`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ commentable_id: conceptId, content }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.detail ?? "Could not create comment.");
-      }
+      await commentMutation.mutateAsync(
+        { commentContent: content, commentableId: commentable_id });
       setContent("");
       onSubmitted();
     } catch (err) {

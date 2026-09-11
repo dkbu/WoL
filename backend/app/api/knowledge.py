@@ -105,3 +105,10 @@ def create_comment(
             detail="Commentable record or creator was not found.",
         )
     return result
+
+@router.get("/knowledge/comments")
+def get_comments(
+    commentable_id: uuid.UUID,
+    db: Session = Depends(get_db)
+) -> list[Comment]:
+    return db_knowledge.get_comments(db, commentable_id)

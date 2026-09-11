@@ -4,6 +4,7 @@ import ConceptTag from "./conceptTag.jsx";
 import { useConcepts, useUser, getConceptTagProps } from "./searchData.jsx";
 import { Link } from "react-router-dom";
 import UserTag from "./userTag.jsx";
+import CommentSection from "./commentSection.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
@@ -46,6 +47,10 @@ export default function LinkDetail() {
       <section>
         <p>{link?.connection}</p>
       </section>
+      
+            <CommentSection 
+              commentable_id={linkId}
+            />
       </article>
   );
 }
