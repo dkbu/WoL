@@ -22,6 +22,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "httpx2>=2.0.0",
+    "ruff>=0.17.0",
 ]
 
 [project.scripts]
@@ -42,5 +43,13 @@ packages = ["app"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["Depends", "fastapi.Depends", "fastapi.params.Depends"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

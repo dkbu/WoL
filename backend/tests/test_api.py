@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from app.schemas.users import User
 from fastapi.testclient import TestClient
 
 from app.schemas.knowledge import Comment, Concept, ConceptLink
+from app.schemas.users import User
+from app.types import fed_id
 from tests.conftest import TEST_USER_ID
 
-CONCEPT_ID = "123e4567-e89b-12d3-a456-426614174000"
-SECOND_CONCEPT_ID = "223e4567-e89b-12d3-a456-426614174000"
-CREATOR_ID = "323e4567-e89b-12d3-a456-426614174000"
+CONCEPT_ID = fed_id("123e4567-e89b-12d3-a456-426614174000")
+SECOND_CONCEPT_ID = fed_id("223e4567-e89b-12d3-a456-426614174000")
+CREATOR_ID = fed_id("323e4567-e89b-12d3-a456-426614174000")
 
 
 def test_list_concepts_returns_service_results(client: TestClient) -> None:
@@ -91,7 +92,8 @@ def test_create_concept_allows_admin(admin_client: TestClient) -> None:
     expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
 
     with patch(
-        "app.api.knowledge.db_knowledge.create_concept", return_value=Concept(**expected)
+        "app.api.knowledge.db_knowledge.create_concept",
+        return_value=Concept(**expected),
     ):
         response = admin_client.post("/api/knowledge/concepts", json=payload)
 
@@ -142,7 +144,9 @@ def test_create_comment_returns_created_comment(client: TestClient) -> None:
     create_comment.assert_called_once()
 
 
-def test_create_comment_only_requires_login_not_curator(noncurator_client: TestClient) -> None:
+def test_create_comment_only_requires_login_not_curator(
+    noncurator_client: TestClient,
+) -> None:
     payload = {"commentable_id": CONCEPT_ID, "content": "Useful context."}
     expected = {"id": SECOND_CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
 
