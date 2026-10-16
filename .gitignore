@@ -13,7 +13,6 @@ dist/
 
 # uv
 backend/.venv/
-backend/uv.lock
 
 # Node / frontend
 frontend/node_modules/
