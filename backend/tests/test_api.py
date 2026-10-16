@@ -32,8 +32,8 @@ def test_list_concepts_returns_service_results(client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == [
         {
-            "id": CONCEPT_ID,
-            "creator_id": CREATOR_ID,
+            "id": str(CONCEPT_ID),
+            "creator_id": str(CREATOR_ID),
             "name": "Museum",
             "description": "A knowledge graph",
         }
@@ -53,8 +53,8 @@ def test_get_concept_returns_service_result(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.json() == {
-        "id": CONCEPT_ID,
-        "creator_id": CREATOR_ID,
+        "id": str(CONCEPT_ID),
+        "creator_id": str(CREATOR_ID),
         "name": "Museum",
         "description": None,
     }
@@ -66,7 +66,7 @@ def test_create_concept_returns_created_concept(client: TestClient) -> None:
         "name": "Museum",
         "description": "A knowledge graph",
     }
-    expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+    expected = {"id": str(CONCEPT_ID), "creator_id": TEST_USER_ID, **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept",
@@ -89,7 +89,7 @@ def test_create_concept_requires_curator(noncurator_client: TestClient) -> None:
 
 def test_create_concept_allows_admin(admin_client: TestClient) -> None:
     payload = {"name": "Museum", "description": "A knowledge graph"}
-    expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+    expected = {"id": str(CONCEPT_ID), "creator_id": TEST_USER_ID, **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept",
@@ -110,10 +110,10 @@ def test_create_concept_requires_login(anon_client: TestClient) -> None:
 
 def test_create_concept_link_returns_created_link(client: TestClient) -> None:
     payload = {
-        "source_concept_id": CONCEPT_ID,
-        "target_concept_id": SECOND_CONCEPT_ID,
+        "source_concept_id": str(CONCEPT_ID),
+        "target_concept_id": str(SECOND_CONCEPT_ID),
     }
-    expected = {"id": CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+    expected = {"id": str(CONCEPT_ID), "creator_id": TEST_USER_ID, **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept_link",
@@ -128,10 +128,10 @@ def test_create_concept_link_returns_created_link(client: TestClient) -> None:
 
 def test_create_comment_returns_created_comment(client: TestClient) -> None:
     payload = {
-        "commentable_id": CONCEPT_ID,
+        "commentable_id": str(CONCEPT_ID),
         "content": "Useful context.",
     }
-    expected = {"id": SECOND_CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+    expected = {"id": str(SECOND_CONCEPT_ID), "creator_id": str(TEST_USER_ID), **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_comment",
@@ -147,8 +147,8 @@ def test_create_comment_returns_created_comment(client: TestClient) -> None:
 def test_create_comment_only_requires_login_not_curator(
     noncurator_client: TestClient,
 ) -> None:
-    payload = {"commentable_id": CONCEPT_ID, "content": "Useful context."}
-    expected = {"id": SECOND_CONCEPT_ID, "creator_id": TEST_USER_ID, **payload}
+    payload = {"commentable_id": str(CONCEPT_ID), "content": "Useful context."}
+    expected = {"id": str(SECOND_CONCEPT_ID), "creator_id": str(TEST_USER_ID), **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_comment",

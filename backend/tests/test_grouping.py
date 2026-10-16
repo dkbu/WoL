@@ -21,9 +21,7 @@ PAYLOAD = {"concept_id": str(CONCEPT_ID), "library_id": str(LIBRARY_ID)}
 
 @pytest.fixture
 def user() -> User:
-    return User(
-        id=TEST_USER_ID, username="testuser", is_curator=False, is_admin=False
-    )
+    return User(id=TEST_USER_ID, username="testuser", is_curator=False, is_admin=False)
 
 
 def _library_with(concepts: list[object]) -> SimpleNamespace:

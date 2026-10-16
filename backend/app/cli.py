@@ -2,7 +2,9 @@
 
 import subprocess
 import sys
+from pathlib import Path
 
+BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 def dev() -> None:
     """Run the FastAPI development server with auto-reload."""
@@ -18,7 +20,11 @@ def test() -> None:
 
 def migrate() -> None:
     """Apply database migrations up to the latest revision."""
-    subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], check=True)
+    subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        check=True,
+        cwd=BACKEND_DIR,
+    )
 
 
 def make_migrations() -> None:
@@ -30,4 +36,5 @@ def make_migrations() -> None:
     subprocess.run(
         [sys.executable, "-m", "alembic", "revision", "--autogenerate", "-m", message],
         check=True,
+                cwd=BACKEND_DIR,
     )

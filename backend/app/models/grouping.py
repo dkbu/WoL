@@ -1,27 +1,23 @@
 from sqlalchemy.orm import Mapped, relationship
 
 from app.models.base import UUIDBase
-from app.schemas.knowledge import Concept
 from app.schemas.users import User
 from app.types import fed_id
 
 
 class ConceptGrouping(UUIDBase):
-    __tablename__ = "concept_groupings"
+    __abstract__ = True
 
     name: Mapped[str]
 
     # how to display the grouping in the UI
     style: Mapped[str]
 
-    concepts: Mapped[list["Concept"]] = relationship(
-        back_populates="groupings", foreign_keys="ConceptGrouping.id"
-    )
-
     is_public: Mapped[bool]
 
 
-# A grouping of concepts, potentially created by multiple users, that share a common theme
+# A grouping of concepts, potentially created by multiple users,
+# that share a common theme
 # if a pool is public, any user may add concepts to it
 class ConceptPool(ConceptGrouping):
     __tablename__ = "concept_pools"

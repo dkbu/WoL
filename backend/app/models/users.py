@@ -8,12 +8,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import UUIDBase
 
 if TYPE_CHECKING:
+    from app.models.grouping import ConceptLibrary, ConceptPool  # noqa: F401
     from app.models.knowledge import Commentable, CommentModel  # noqa: F401
 
 
 class UserModel(UUIDBase):
     __tablename__ = "users"
-    
+
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_curator: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -38,6 +39,12 @@ class UserModel(UUIDBase):
         foreign_keys="FollowModel.followed_id",
         cascade="all, delete-orphan",
     )
+    libraries: Mapped[list["ConceptLibrary"]] = relationship(
+        back_populates="owner", foreign_keys="ConceptLibrary.owner_id"
+    )
+    pools: Mapped[list["ConceptPool"]] = relationship(
+        back_populates="maintainers", foreign_keys="ConceptPool.id"
+    )
 
 
 class FollowModel(UUIDBase):
@@ -46,7 +53,9 @@ class FollowModel(UUIDBase):
     __tablename__ = "follows"
 
     __table_args__ = (
-        UniqueConstraint("follower_id", "followed_id", name="uq_follow_follower_followed"),
+        UniqueConstraint(
+            "follower_id", "followed_id", name="uq_follow_follower_followed"
+        ),
     )
 
     follower_id: Mapped[PyUUID] = mapped_column(
