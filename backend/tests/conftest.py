@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
 
-from app.main import app
 from app.db import get_db
 from app.deps import get_current_user
+from app.main import app
 from app.schemas.users import User
+from app.types import fed_id
 
-TEST_USER_ID = "999e4567-e89b-12d3-a456-426614174999"
+TEST_USER_ID = fed_id("999e4567-e89b-12d3-a456-426614174999")
 
 
 def mock_db():
@@ -19,14 +21,18 @@ def mock_db():
 
 
 def _fake_current_user(is_curator: bool = False, is_admin: bool = False) -> User:
-    return User(id=TEST_USER_ID, username="testuser", is_curator=is_curator, is_admin=is_admin)
+    return User(
+        id=TEST_USER_ID, username="testuser", is_curator=is_curator, is_admin=is_admin
+    )
 
 
 @pytest.fixture
 def client():
     """An authenticated (curator) client: covers the common case for existing tests."""
     app.dependency_overrides[get_db] = mock_db
-    app.dependency_overrides[get_current_user] = lambda: _fake_current_user(is_curator=True)
+    app.dependency_overrides[get_current_user] = lambda: _fake_current_user(
+        is_curator=True
+    )
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
@@ -55,7 +61,9 @@ def noncurator_client():
 def admin_client():
     """An authenticated admin (but non-curator) client, for testing admin-only endpoints."""
     app.dependency_overrides[get_db] = mock_db
-    app.dependency_overrides[get_current_user] = lambda: _fake_current_user(is_admin=True)
+    app.dependency_overrides[get_current_user] = lambda: _fake_current_user(
+        is_admin=True
+    )
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
