@@ -66,11 +66,15 @@ def test_create_concept_returns_created_concept(client: TestClient) -> None:
         "name": "Museum",
         "description": "A knowledge graph",
     }
-    expected = {"id": str(CONCEPT_ID), "creator_id": TEST_USER_ID, **payload}
+    expected = {
+        "id": str(CONCEPT_ID),
+        "creator_id": str(TEST_USER_ID),
+        **payload,
+    }
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept",
-        return_value=Concept(**expected),
+        return_value=Concept(id=CONCEPT_ID, creator_id=TEST_USER_ID, **payload),
     ) as create_concept:
         response = client.post("/api/knowledge/concepts", json=payload)
 
@@ -113,11 +117,16 @@ def test_create_concept_link_returns_created_link(client: TestClient) -> None:
         "source_concept_id": str(CONCEPT_ID),
         "target_concept_id": str(SECOND_CONCEPT_ID),
     }
-    expected = {"id": str(CONCEPT_ID), "creator_id": TEST_USER_ID, **payload}
+    expected = {"id": str(CONCEPT_ID), "creator_id": str(TEST_USER_ID), **payload}
 
     with patch(
         "app.api.knowledge.db_knowledge.create_concept_link",
-        return_value=ConceptLink(**expected),
+        return_value=ConceptLink(
+            id=CONCEPT_ID,
+            creator_id=TEST_USER_ID,
+            source_concept_id=CONCEPT_ID,
+            target_concept_id=SECOND_CONCEPT_ID,
+        ),
     ) as create_concept_link:
         response = client.post("/api/knowledge/concept-links", json=payload)
 
@@ -131,11 +140,20 @@ def test_create_comment_returns_created_comment(client: TestClient) -> None:
         "commentable_id": str(CONCEPT_ID),
         "content": "Useful context.",
     }
-    expected = {"id": str(SECOND_CONCEPT_ID), "creator_id": str(TEST_USER_ID), **payload}
+    expected = {
+        "id": str(SECOND_CONCEPT_ID),
+        "creator_id": str(TEST_USER_ID),
+        **payload,
+    }
 
     with patch(
         "app.api.knowledge.db_knowledge.create_comment",
-        return_value=Comment(**expected),
+        return_value=Comment(
+            id=SECOND_CONCEPT_ID,
+            creator_id=TEST_USER_ID,
+            commentable_id=CONCEPT_ID,
+            content="Useful context.",
+        ),
     ) as create_comment:
         response = client.post("/api/knowledge/comments", json=payload)
 
@@ -148,11 +166,20 @@ def test_create_comment_only_requires_login_not_curator(
     noncurator_client: TestClient,
 ) -> None:
     payload = {"commentable_id": str(CONCEPT_ID), "content": "Useful context."}
-    expected = {"id": str(SECOND_CONCEPT_ID), "creator_id": str(TEST_USER_ID), **payload}
+    expected = {
+        "id": str(SECOND_CONCEPT_ID),
+        "creator_id": str(TEST_USER_ID),
+        **payload,
+    }
 
     with patch(
         "app.api.knowledge.db_knowledge.create_comment",
-        return_value=Comment(**expected),
+        return_value=Comment(
+            id=SECOND_CONCEPT_ID,
+            creator_id=TEST_USER_ID,
+            commentable_id=CONCEPT_ID,
+            content="Useful context.",
+        ),
     ):
         response = noncurator_client.post("/api/knowledge/comments", json=payload)
 
